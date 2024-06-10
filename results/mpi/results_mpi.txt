@@ -1,0 +1,4 @@
+Tiempo de ejecución mpi con 1 hilos: 40.38246393203735
+Tiempo de ejecución mpi con 2 hilos: 21.200765371322632
+Tiempo de ejecución mpi con 3 hilos: 15.300242900848389
+Tiempo de ejecución mpi con 4 hilos: 11.911021947860718

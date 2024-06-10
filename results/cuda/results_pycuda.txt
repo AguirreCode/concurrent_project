@@ -1,0 +1,5 @@
+Tiempo de ejecución PyCUDA: 0.26930904388427734
+Tiempo de ejecución PyCUDA: 0.2510650157928467
+Tiempo de ejecución PyCUDA: 0.2720334529876709
+Tiempo de ejecución PyCUDA: 0.26454806327819824
+Tiempo de ejecución PyCUDA: 0.24990534782409668

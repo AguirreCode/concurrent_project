@@ -1,0 +1,12 @@
+Tiempo de ejecución multiprocessing con 1 hilos: 9.170325517654419
+Tiempo de ejecución multiprocessing con 2 hilos: 4.628314256668091
+Tiempo de ejecución multiprocessing con 4 hilos: 2.83233642578125
+Tiempo de ejecución multiprocessing con 8 hilos: 2.232980966567993
+Aceleración con 1 hilos: 1.0
+Aceleración con 2 hilos: 1.9813542593366242
+Aceleración con 4 hilos: 3.237729165995
+Aceleración con 8 hilos: 4.106772061764463
+Eficiencia con 1 hilos: 1.0
+Eficiencia con 2 hilos: 0.9906771296683121
+Eficiencia con 4 hilos: 0.80943229149875
+Eficiencia con 8 hilos: 0.5133465077205579
