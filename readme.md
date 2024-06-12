@@ -42,4 +42,4 @@ bash ./run_cuda.sh
 El proyecto incluye scripts para medir y comparar los tiempos de ejecución de los diferentes métodos. Los resultados se almacenan en archivos de texto y se generan gráficos de rendimiento para visualizar la aceleración y la eficiencia de cada método.
 
 ## Contribuciones
-Este proyecto fue desarrollado por Jhair Alexander Peña Aguirre como parte de la asignatura de Programación Concurrente y Distribuida.
+Este proyecto fue desarrollado por Jhair Alexander Peña Aguirre, Dany Orlando Guancha Tarapues y Jefferson Henao Cano como parte de la asignatura de Programación Concurrente y Distribuida.
