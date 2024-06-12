@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from mpi4py import MPI
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count, shared_memory
 import cv2
 from tqdm import tqdm
 import os
@@ -41,34 +41,41 @@ def dotplot_sequential(sequence1, sequence2):
                 dotplot[i, j] = 0
     return dotplot
 
-def worker_multiprocessing(start_idx, end_idx, sequence1, sequence2):
-    dotplot_chunk = np.zeros((end_idx - start_idx, len(sequence2)))
+def worker_multiprocessing(start_idx, end_idx, shm_name, shape, dtype, sequence1, sequence2):
+    existing_shm = shared_memory.SharedMemory(name=shm_name)
+    dotplot = np.ndarray(shape, dtype=dtype, buffer=existing_shm.buf)
+    
     for i in range(start_idx, end_idx):
         for j in range(len(sequence2)):
             if sequence1[i] == sequence2[j]:
-                dotplot_chunk[i - start_idx, j] = 1 if i == j else 0.7
-    return dotplot_chunk
+                dotplot[i, j] = 1 if i == j else 0.7
+            else:
+                dotplot[i, j] = 0
+    
+    existing_shm.close()
 
 def parallel_multiprocessing_dotplot(sequence1, sequence2, threads=cpu_count(), chunk_size=500):
+    shape = (len(sequence1), len(sequence2))
+    dtype = np.float16
+
+    shm = shared_memory.SharedMemory(create=True, size=np.prod(shape) * np.dtype(dtype).itemsize)
+    dotplot = np.ndarray(shape, dtype=dtype, buffer=shm.buf)
+    dotplot.fill(0)
+
     pool = Pool(processes=threads)
-    results = []
 
-    for start_idx in range(0, len(sequence1), chunk_size):
-        end_idx = min(start_idx + chunk_size, len(sequence1))
-        results.append(pool.apply_async(worker_multiprocessing, 
-                        (start_idx, end_idx, sequence1, sequence2)))
-
+    indices = [(start_idx, min(start_idx + chunk_size, len(sequence1)), shm.name, shape, dtype, sequence1, sequence2)
+               for start_idx in range(0, len(sequence1), chunk_size)]
+    
+    pool.starmap(worker_multiprocessing, indices)
     pool.close()
     pool.join()
 
-    dotplot = np.zeros((len(sequence1), len(sequence2)))
-    start_idx = 0  # Add this line to track start_idx
-    for res in results:
-        chunk_result = res.get()
-        dotplot[start_idx:start_idx + chunk_result.shape[0], :] = chunk_result
-        start_idx += chunk_result.shape[0]  # Update start_idx correctly
+    dotplot_copy = dotplot.copy()  # Copy the result to return
+    shm.close()
+    shm.unlink()
 
-    return dotplot
+    return dotplot_copy
 
 def save_results_to_file(results, file_name="images/results.txt"):
     with open(file_name, "a") as file:
@@ -225,8 +232,8 @@ def main():
             print("Archivo no encontrado, verifique la ruta")
             exit(1)
 
-        Secuencia1 = merged_sequence_1[0:10000]
-        Secuencia2 = merged_sequence_2[0:10000]
+        Secuencia1 = merged_sequence_1[0:30000]
+        Secuencia2 = merged_sequence_2[0:30000]
         chargeFilesFinish = time.time()
 
         save_results_to_file([f"Tiempo de carga de los archivos: {chargeFilesFinish - chargeFilesStart}"],
@@ -252,10 +259,10 @@ def main():
         dotplotSequential = dotplot_sequential(Secuencia1, Secuencia2)
         results_print.append(
             f"Tiempo de ejecución secuencial: {time.time() - start_secuencial}")
-        draw_dotplot(dotplotSequential[:600, :600],
+        draw_dotplot(dotplotSequential[:10000, :10000],
                      fig_name="images/images_sequential/dotplot/dotplot_secuencial.png")
         path_image = 'images/images_filter/dotplot_filter_sequential.png'
-        apply_filter(dotplotSequential[:600, :600], path_image)
+        apply_filter(dotplotSequential[:10000, :10000], path_image)
         save_results_to_file(results_print, file_name="results/sequential/results_sequential.txt")
 
     if args.multiprocessing and rank == 0:
@@ -282,11 +289,11 @@ def main():
 
         save_results_to_file(results_print, file_name="results/multiprocessing/results_multiprocessing.txt")
         draw_graphic(times_multiprocessing, accelerations, efficiencies, num_threads, "images/images_multiprocessing/metrics/graficasMultiprocessing.png")
-        draw_dotplot(dotplotMultiprocessing[:600, :600],
+        draw_dotplot(dotplotMultiprocessing[:10000, :10000],
                      fig_name='images/images_multiprocessing/dotplot/dotplot_multiprocessing.png')
         
         path_image = 'images/images_filter/dotplot_filter_multiprocessing.png'  
-        apply_filter(dotplotMultiprocessing[:600, :600], path_image)
+        apply_filter(dotplotMultiprocessing[:10000, :10000], path_image)
 
     if args.mpi:
         if rank == 0:
@@ -296,7 +303,9 @@ def main():
             elapsed_time = time.time() - start_time
             results_print_mpi = [f"Tiempo de ejecución mpi con {args.num_processes} hilos: {elapsed_time}"]
             save_results_to_file(results_print_mpi, file_name=args.results_file)
-            draw_dotplot(dotplot_mpi[:600, :600], fig_name=f'images/images_mpi/dotplot/dotplot_mpi_{args.num_processes}_processes.png')
+            draw_dotplot(dotplot_mpi[:10000, :10000], fig_name=f'images/images_mpi/dotplot/dotplot_mpi_{args.num_processes}_processes.png')
+            path_image = 'images/images_filter/dotplot_filter_mpi.png'  
+            apply_filter(dotplotMultiprocessing[:10000, :10000], path_image)
 
     if args.pycuda:
         start_time = time.time()
@@ -304,7 +313,9 @@ def main():
         elapsed_time = time.time() - start_time
         results_print_pycuda = [f"Tiempo de ejecución PyCUDA: {elapsed_time}"]
         save_results_to_file(results_print_pycuda, file_name="results/cuda/results_pycuda.txt")
-        draw_dotplot(dotplot_pycuda[:600, :600], fig_name=f'images/images_pycuda/dotplot/dotplot_pycuda_{seq_length}.png')
+        draw_dotplot(dotplot_pycuda[:10000, :10000], fig_name=f'images/images_pycuda/dotplot/dotplot_pycuda_{seq_length}.png')
+        path_image = 'images/images_filter/dotplot_filter_cuda.png'  
+        apply_filter(dotplotMultiprocessing[:10000, :10000], path_image)
 
 if __name__ == "__main__":
     main()
