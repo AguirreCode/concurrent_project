@@ -21,32 +21,28 @@ done
 # After the loop, gather the results and generate performance graphs
 echo "Generating performance graphs..."
 
-# Parse the results file to extract times
+# Parse the results file to extract times, accelerations, and efficiencies
 TIMES=($(grep 'Tiempo de ejecución mpi' $RESULTS_FILE | awk '{print $NF}'))
+ACCELERATIONS=($(grep 'Aceleración con' $RESULTS_FILE | awk '{print $NF}'))
+EFFICIENCIES=($(grep 'Eficiencia con' $RESULTS_FILE | awk '{print $NF}'))
+
+# Add default values for 1 process if not present
+if [ ${#ACCELERATIONS[@]} -lt ${#NUM_PROCESSES[@]} ]; then
+    ACCELERATIONS=(1.0 "${ACCELERATIONS[@]}")
+    EFFICIENCIES=(1.0 "${EFFICIENCIES[@]}")
+fi
 
 # Debugging: print the arrays to check their contents
 echo "NUM_PROCESSES: ${NUM_PROCESSES[@]}"
 echo "TIMES: ${TIMES[@]}"
+echo "ACCELERATIONS: ${ACCELERATIONS[@]}"
+echo "EFFICIENCIES: ${EFFICIENCIES[@]}"
 
-# Check if the number of processes matches the number of times
-if [ ${#NUM_PROCESSES[@]} -ne ${#TIMES[@]} ]; then
-    echo "Error: The number of process counts does not match the number of times recorded."
-    exit 1
-fi
-
-# Create arrays for accelerations and efficiencies
-ACCELERATIONS=()
-EFFICIENCIES=()
-
-# Calculate accelerations and efficiencies
-BASE_TIME=${TIMES[0]}
-for TIME in "${TIMES[@]}"; do
-    ACCELERATIONS+=($(echo "$BASE_TIME / $TIME" | bc -l))
-done
-
-for i in "${!ACCELERATIONS[@]}"; do
-    EFFICIENCIES+=($(echo "${ACCELERATIONS[i]} / ${NUM_PROCESSES[i]}" | bc -l))
-done
+# Ensure all arrays have the same length
+length=${#NUM_PROCESSES[@]}
+TIMES=("${TIMES[@]:0:$length}")
+ACCELERATIONS=("${ACCELERATIONS[@]:0:$length}")
+EFFICIENCIES=("${EFFICIENCIES[@]:0:$length}")
 
 # Convert arrays to comma-separated strings for Python
 NUM_PROCESSES_STR=$(printf ",%s" "${NUM_PROCESSES[@]}")
@@ -69,13 +65,13 @@ efficiencies = [${EFFICIENCIES_STR}]
 
 plt.figure(figsize=(10, 10))
 plt.subplot(1, 2, 1)
-plt.plot(num_threads, times)
+plt.plot(num_threads, times, marker='o')
 plt.xlabel("Número de procesadores")
 plt.ylabel("Tiempo")
 
 plt.subplot(1, 2, 2)
-plt.plot(num_threads, accelerations, label="Aceleración")
-plt.plot(num_threads, efficiencies, label="Eficiencia")
+plt.plot(num_threads, accelerations, label="Aceleración", marker='o')
+plt.plot(num_threads, efficiencies, label="Eficiencia", marker='o')
 plt.xlabel("Número de procesadores")
 plt.ylabel("Aceleración y Eficiencia")
 plt.legend()
@@ -85,4 +81,5 @@ plt.show()
 EOF
 
 # ejecutar programa mpi con:
+# dar permisos chmod +x ./run_mpi.sh
 # bash ./run_mpi.sh

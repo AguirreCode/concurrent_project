@@ -301,21 +301,54 @@ def main():
         dotplot_mpi = parallel_mpi_dotplot(Secuencia1, Secuencia2)
         if rank == 0:
             elapsed_time = time.time() - start_time
-            results_print_mpi = [f"Tiempo de ejecución mpi con {args.num_processes} hilos: {elapsed_time}"]
+            results_print_mpi = [f"Tiempo de ejecución mpi con {args.num_processes} procesos: {elapsed_time}"]
+
+            # Calcular aceleraciones y eficiencias
+            with open(args.results_file, 'r') as f:
+                previous_times = [float(line.split()[-1]) for line in f if 'Tiempo de ejecución mpi' in line]
+            
+            if not previous_times:
+                # Para 1 proceso, aceleración y eficiencia deben ser 1
+                accelerations = [1.0]
+                efficiencies = [1.0]
+            else:
+                base_time = previous_times[0]
+                accelerations = [base_time / t for t in previous_times + [elapsed_time]]
+                efficiencies = [accelerations[i] / (i + 1) for i in range(len(accelerations))]
+
+            results_print_mpi.append(f"Aceleración con {args.num_processes} procesos: {accelerations[-1]}")
+            results_print_mpi.append(f"Eficiencia con {args.num_processes} procesos: {efficiencies[-1]}")
+
             save_results_to_file(results_print_mpi, file_name=args.results_file)
             draw_dotplot(dotplot_mpi[:10000, :10000], fig_name=f'images/images_mpi/dotplot/dotplot_mpi_{args.num_processes}_processes.png')
-            path_image = 'images/images_filter/dotplot_filter_mpi.png'  
-            apply_filter(dotplotMultiprocessing[:10000, :10000], path_image)
+            path_image = 'images/images_filter/dotplot_filter_mpi.png'
+            apply_filter(dotplot_mpi[:10000, :10000], path_image)
 
     if args.pycuda:
         start_time = time.time()
         dotplot_pycuda = parallel_pycuda_dotplot(Secuencia1, Secuencia2)
         elapsed_time = time.time() - start_time
         results_print_pycuda = [f"Tiempo de ejecución PyCUDA: {elapsed_time}"]
-        save_results_to_file(results_print_pycuda, file_name="results/cuda/results_pycuda.txt")
-        draw_dotplot(dotplot_pycuda[:10000, :10000], fig_name=f'images/images_pycuda/dotplot/dotplot_pycuda_{seq_length}.png')
-        path_image = 'images/images_filter/dotplot_filter_cuda.png'  
-        apply_filter(dotplotMultiprocessing[:10000, :10000], path_image)
+        
+        # Calcular aceleraciones y eficiencias
+        results_file = "results/cuda/results_pycuda.txt"
+        with open(results_file, 'r') as f:
+            previous_times = [float(line.split()[-1]) for line in f if 'Tiempo de ejecución PyCUDA' in line]
+
+        if not previous_times:
+            previous_times = [elapsed_time]  # Add the initial elapsed time if the list is empty
+
+        base_time = previous_times[0]
+        accelerations = [base_time / t for t in previous_times + [elapsed_time]]
+        efficiencies = [accelerations[i] / (i + 1) for i in range(len(accelerations))]
+
+        results_print_pycuda.append(f"Aceleración con {args.seq_length} longitud de secuencia: {accelerations[-1]}")
+        results_print_pycuda.append(f"Eficiencia con {args.seq_length} longitud de secuencia: {efficiencies[-1]}")
+
+        save_results_to_file(results_print_pycuda, file_name=results_file)
+        draw_dotplot(dotplot_pycuda[:10000, :10000], fig_name=f'images/images_pycuda/dotplot/dotplot_pycuda_{args.seq_length}.png')
+        path_image = 'images/images_filter/dotplot_filter_cuda.png'
+        apply_filter(dotplot_pycuda[:10000, :10000], path_image)
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,15 @@
-Tiempo de ejecución PyCUDA: 0.26930904388427734
-Tiempo de ejecución PyCUDA: 0.2510650157928467
-Tiempo de ejecución PyCUDA: 0.2720334529876709
-Tiempo de ejecución PyCUDA: 0.26454806327819824
-Tiempo de ejecución PyCUDA: 0.24990534782409668
+Tiempo de ejecución PyCUDA: 2.5200414657592773
+Aceleración con 10000 longitud de secuencia: 1.0
+Eficiencia con 10000 longitud de secuencia: 0.5
+Tiempo de ejecución PyCUDA: 2.357171058654785
+Aceleración con 15000 longitud de secuencia: 1.0690957096670959
+Eficiencia con 15000 longitud de secuencia: 0.5345478548335479
+Tiempo de ejecución PyCUDA: 2.3207497596740723
+Aceleración con 20000 longitud de secuencia: 1.0858738454046823
+Eficiencia con 20000 longitud de secuencia: 0.36195794846822743
+Tiempo de ejecución PyCUDA: 2.4016871452331543
+Aceleración con 25000 longitud de secuencia: 1.0492796577443617
+Eficiencia con 25000 longitud de secuencia: 0.26231991443609043
+Tiempo de ejecución PyCUDA: 2.285701274871826
+Aceleración con 30000 longitud de secuencia: 1.1025244171072146
+Eficiencia con 30000 longitud de secuencia: 0.22050488342144292
