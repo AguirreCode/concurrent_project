@@ -185,8 +185,11 @@ def apply_filter(matrix, output_path):
     # Aplica el filtro
     filtered_matrix = cv2.filter2D(matrix, -1, kernel_diagonales)
     
-    # Guarda la imagen filtrada
-    cv2.imwrite(output_path, filtered_matrix)
+    # Normaliza los valores de la matriz para asegurarte de que están en el rango adecuado para la visualización
+    filtered_matrix = cv2.normalize(filtered_matrix, None, 0, 255, cv2.NORM_MINMAX)
+    
+    # Guarda la imagen filtrada como uint8
+    cv2.imwrite(output_path, filtered_matrix.astype(np.uint8))
 
 def main():
     comm = MPI.COMM_WORLD
