@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import time
 from mpi4py import MPI
 from multiprocessing import Pool, cpu_count, shared_memory
+import multiprocessing as mp
 import cv2
 from tqdm import tqdm
 import os
@@ -41,7 +42,7 @@ def dotplot_sequential(sequence1, sequence2):
                 dotplot[i, j] = 0
     return dotplot
 
-def worker_multiprocessing(start_idx, end_idx, shm_name, shape, dtype, sequence1, sequence2):
+"""def worker_multiprocessing(start_idx, end_idx, shm_name, shape, dtype, sequence1, sequence2):
     existing_shm = shared_memory.SharedMemory(name=shm_name)
     dotplot = np.ndarray(shape, dtype=dtype, buffer=existing_shm.buf)
     
@@ -52,9 +53,21 @@ def worker_multiprocessing(start_idx, end_idx, shm_name, shape, dtype, sequence1
             else:
                 dotplot[i, j] = 0
     
-    existing_shm.close()
+    existing_shm.close()"""
+def worker_multiprocessing(args):
+    i, sequence1, sequence2 = args
+    dotplot = []
+    for j in range(len(sequence2)):
+        if sequence1[i] == sequence2[j]:
+            if i == j:
+                dotplot.append(1)
+            else:
+                dotplot.append(0.7)
+        else:
+            dotplot.append(0)
+    return dotplot
 
-def parallel_multiprocessing_dotplot(sequence1, sequence2, threads=cpu_count(), chunk_size=500):
+"""def parallel_multiprocessing_dotplot(sequence1, sequence2, threads=cpu_count(), chunk_size=500):
     shape = (len(sequence1), len(sequence2))
     dtype = np.float16
 
@@ -75,7 +88,12 @@ def parallel_multiprocessing_dotplot(sequence1, sequence2, threads=cpu_count(), 
     shm.close()
     shm.unlink()
 
-    return dotplot_copy
+    return dotplot_copy"""
+def parallel_multiprocessing_dotplot(sequence1, sequence2, threads=mp.cpu_count()):
+    with mp.Pool(processes=threads) as pool:
+        dotplot = pool.map(worker_multiprocessing, [
+                           (i, sequence1, sequence2) for i in range(len(sequence1))])
+    return dotplot
 
 def save_results_to_file(results, file_name="images/results.txt"):
     with open(file_name, "a") as file:
@@ -185,8 +203,11 @@ def apply_filter(matrix, output_path):
     # Aplica el filtro
     filtered_matrix = cv2.filter2D(matrix, -1, kernel_diagonales)
     
-    # Guarda la imagen filtrada
-    cv2.imwrite(output_path, filtered_matrix)
+    # Normaliza los valores de la matriz para asegurarte de que están en el rango adecuado para la visualización
+    filtered_matrix = cv2.normalize(filtered_matrix, None, 0, 255, cv2.NORM_MINMAX)
+    
+    # Guarda la imagen filtrada como uint8
+    cv2.imwrite(output_path, filtered_matrix.astype(np.uint8))
 
 def main():
     comm = MPI.COMM_WORLD
@@ -259,10 +280,10 @@ def main():
         dotplotSequential = dotplot_sequential(Secuencia1, Secuencia2)
         results_print.append(
             f"Tiempo de ejecución secuencial: {time.time() - start_secuencial}")
-        draw_dotplot(dotplotSequential[:10000, :10000],
+        draw_dotplot(dotplotSequential[:600, :600],
                      fig_name="images/images_sequential/dotplot/dotplot_secuencial.png")
         path_image = 'images/images_filter/dotplot_filter_sequential.png'
-        apply_filter(dotplotSequential[:10000, :10000], path_image)
+        apply_filter(dotplotSequential[:600, :600], path_image)
         save_results_to_file(results_print, file_name="results/sequential/results_sequential.txt")
 
     if args.multiprocessing and rank == 0:
@@ -289,11 +310,11 @@ def main():
 
         save_results_to_file(results_print, file_name="results/multiprocessing/results_multiprocessing.txt")
         draw_graphic(times_multiprocessing, accelerations, efficiencies, num_threads, "images/images_multiprocessing/metrics/graficasMultiprocessing.png")
-        draw_dotplot(dotplotMultiprocessing[:10000, :10000],
+        draw_dotplot(dotplotMultiprocessing[:600, :600],
                      fig_name='images/images_multiprocessing/dotplot/dotplot_multiprocessing.png')
         
         path_image = 'images/images_filter/dotplot_filter_multiprocessing.png'  
-        apply_filter(dotplotMultiprocessing[:10000, :10000], path_image)
+        apply_filter(dotplotMultiprocessing[:600, :600], path_image)
 
     if args.mpi:
         if rank == 0:
@@ -303,9 +324,9 @@ def main():
             elapsed_time = time.time() - start_time
             results_print_mpi = [f"Tiempo de ejecución mpi con {args.num_processes} hilos: {elapsed_time}"]
             save_results_to_file(results_print_mpi, file_name=args.results_file)
-            draw_dotplot(dotplot_mpi[:10000, :10000], fig_name=f'images/images_mpi/dotplot/dotplot_mpi_{args.num_processes}_processes.png')
+            draw_dotplot(dotplot_mpi[:600, :600], fig_name=f'images/images_mpi/dotplot/dotplot_mpi_{args.num_processes}_processes.png')
             path_image = 'images/images_filter/dotplot_filter_mpi.png'  
-            apply_filter(dotplotMultiprocessing[:10000, :10000], path_image)
+            apply_filter(dotplotMultiprocessing[:600, :600], path_image)
 
     if args.pycuda:
         start_time = time.time()

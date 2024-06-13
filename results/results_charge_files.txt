@@ -18,3 +18,9 @@ Tiempo de carga de los archivos: 0.03195333480834961
 Tiempo de carga de los archivos: 0.03401899337768555
 Tiempo de carga de los archivos: 0.032423973083496094
 Tiempo de carga de los archivos: 0.033258914947509766
+Tiempo de carga de los archivos: 0.23491477966308594
+Tiempo de carga de los archivos: 0.1774756908416748
+Tiempo de carga de los archivos: 0.17998027801513672
+Tiempo de carga de los archivos: 0.1670551300048828
+Tiempo de carga de los archivos: 0.15090250968933105
+Tiempo de carga de los archivos: 0.15208697319030762
