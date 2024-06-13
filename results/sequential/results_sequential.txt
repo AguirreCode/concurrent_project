@@ -1,4 +1,1 @@
-Tiempo de ejecuciÃ³n secuencial: 99.3998966217041
-Tiempo de ejecución secuencial: 442.2092242240906
-Tiempo de ejecución secuencial: 44.688477754592896
-Tiempo de ejecución secuencial: 46.22395586967468
+Tiempo de ejecuciÃ³n secuencial: 98.63680791854858

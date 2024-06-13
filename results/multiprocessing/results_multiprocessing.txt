@@ -10,15 +10,15 @@ Eficiencia con 1 hilos: 1.0
 Eficiencia con 2 hilos: 0.9906771296683121
 Eficiencia con 4 hilos: 0.80943229149875
 Eficiencia con 8 hilos: 0.5133465077205579
-Tiempo de ejecuci髇 multiprocessing con 1 hilos: 59.132649183273315
-Tiempo de ejecuci髇 multiprocessing con 2 hilos: 40.752058029174805
-Tiempo de ejecuci髇 multiprocessing con 4 hilos: 39.716856241226196
-Tiempo de ejecuci髇 multiprocessing con 8 hilos: 53.70007610321045
-Aceleraci髇 con 1 hilos: 1.0
-Aceleraci髇 con 2 hilos: 1.4510705660324283
-Aceleraci髇 con 4 hilos: 1.488855231242937
-Aceleraci髇 con 8 hilos: 1.101165090895245
+Tiempo de ejecuci贸n multiprocessing con 1 hilos: 103.43224573135376
+Tiempo de ejecuci贸n multiprocessing con 2 hilos: 57.64410185813904
+Tiempo de ejecuci贸n multiprocessing con 4 hilos: 31.244438648223877
+Tiempo de ejecuci贸n multiprocessing con 8 hilos: 21.64829993247986
+Aceleraci贸n con 1 hilos: 1.0
+Aceleraci贸n con 2 hilos: 1.7943249449099472
+Aceleraci贸n con 4 hilos: 3.3104214927212716
+Aceleraci贸n con 8 hilos: 4.7778471944412395
 Eficiencia con 1 hilos: 1.0
-Eficiencia con 2 hilos: 0.7255352830162142
-Eficiencia con 4 hilos: 0.37221380781073427
-Eficiencia con 8 hilos: 0.13764563636190563
+Eficiencia con 2 hilos: 0.8971624724549736
+Eficiencia con 4 hilos: 0.8276053731803179
+Eficiencia con 8 hilos: 0.5972308993051549
